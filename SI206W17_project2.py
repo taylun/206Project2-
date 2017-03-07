@@ -102,14 +102,13 @@ def get_umsi_data():
 		print("using cached data for UMSI request")
 	else:
 		print("getting new data from the web for UMSI request")
+		umsi_directory_data= []
 		pages= range(12)
 		for page in pages:
 			base_url= "https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All"  
 			final_url= base_url + "&page=" + str(page)
-			umsi_directory_data= []
 			r = requests.get(final_url, headers= {"User-Agent": "SI_CLASS"})
-			umsi_html= r.text
-			umsi_directory_data.append(umsi_html)
+			umsi_directory_data.append(r.text)
 		CACHE_DICTION[unique_identifier] = umsi_directory_data
 		f = open(CACHE_FNAME,'w') # open our cache file to write
 		f.write(json.dumps(CACHE_DICTION)) # write the JSON-string version of the cache dictionary to the file, which has everything in it
@@ -121,14 +120,26 @@ def get_umsi_data():
 ## whose keys are UMSI people's names, and whose associated values are those people's titles, e.g. "PhD student" or "Associate Professor of Information"...
 
 invoke_umsi_data= get_umsi_data()
-#print((invoke_umsi_data))
+#print(len(invoke_umsi_data))
 umsi_titles = {}
 name_list= []
 title_list= []
 for item in invoke_umsi_data:
 	soup = BeautifulSoup(item,"html.parser")
-#print(soup.prettify())
 	people = soup.find_all("div",{"class":"views-row"})
+	for p in people:
+		name_container = p.find("div",{"property":"dc:title"})
+		title_container = p.find("div",{"class":"field-name-field-person-titles"})
+		umsi_titles[name_container.text] = title_container.text
+	
+
+
+
+
+
+"""
+	people = soup.find_all("div",{"class":"views-row"})
+	print(people)
 
 	
 	for item in people:
@@ -153,13 +164,9 @@ for item in invoke_umsi_data:
 	for name in name_list:
 		umsi_titles[name]= title_list[x]
 		x += 1
-pages= range(12)
-for page in pages:
-			base_url= "https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All"  
-			final_url= base_url + "&page=" + str(page)
-			print(final_url)
 
-
+#print(umsi_titles)
+"""
 
 
 ## PART 3 (a) - Define a function get_five_tweets
