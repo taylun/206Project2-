@@ -48,25 +48,6 @@ def canonical_order(d):
         res.append((k, d[k]))
     return res
 
-"""def getwithCaching(search_query):
-	if search_query in CACHE_DICTION:
-		print("using cached data for", search_query+ " search")
-	
-	else:
-		print("getting new data from the web for", search_query+ " search")
-		
-		search_results= api.search(q= search_query)	
-		
-		CACHE_DICTION[search_query] = search_results
-		f = open(CACHE_FNAME,'w') # open our cache file to write
-		f.write(json.dumps(CACHE_DICTION)) # write the JSON-string version of the cache dictionary to the file, which has everything in it
-		f.close()
-
-
-	return CACHE_DICTION[search_query]
-"""	
-
-
 
 ## PART 1 - Define a function find_urls.
 ## INPUT: any string
@@ -77,11 +58,9 @@ def canonical_order(d):
 ## find_urls("I love looking at websites like http://etsy.com and http://instagram.com and stuff") should return ["http://etsy.com","http://instagram.com"]
 ## find_urls("the internet is awesome #worldwideweb") should return [], empty list
 def find_urls(any_string):
-	list_of_urls= re.findall("https?:\/\/[A-Za-z0-9]{2,}(?:\.+[a-zA-Z0-9]{2,})+", any_string)
+	regex= r"https?:\/\/[A-Za-z0-9]{2,}(?:\.+[a-zA-Z0-9]{2,})+"
+	list_of_urls= re.findall(regex, any_string)
 	return list_of_urls
-
-
-
 
 
 
@@ -137,52 +116,44 @@ for item in invoke_umsi_data:
 
 
 
-"""
-	people = soup.find_all("div",{"class":"views-row"})
-	print(people)
-
-	
-	for item in people:
-		stuff= item.find_all("div", {"property":"dc:title"})
-	for things in stuff:
-		names= things.find_all("h2")
-		for name in names:
-			name_list.append((name.text))
-
-	
-	for item in people:
-		first_search= item.find_all("div", {"class": "field-items"})
-		for finding in first_search:
-			if finding.a:
-				pass
-			elif finding.h2:
-				pass
-			else:
-				title_list.append((finding.text))
-
-	x = 0
-	for name in name_list:
-		umsi_titles[name]= title_list[x]
-		x += 1
-
-#print(umsi_titles)
-"""
-
 
 ## PART 3 (a) - Define a function get_five_tweets
 ## INPUT: Any string
 ## Behavior: See instructions. Should search for the input string on twitter and get results. Should check for cached data, use it if possible, and if not, cache the data retrieved.
 ## RETURN VALUE: A list of strings: A list of just the text of 5 different tweets that result from the search.
 
-
-
+def get_five_tweets(search_query):
+	unique_identifier= "twitter_"+ search_query
+	if unique_identifier in CACHE_DICTION:
+		print("using cached data for", search_query+ " search")
+	
+	else:
+		print("getting new data from the web for", search_query+ " search")
+		
+		search_results= api.search(q= search_query)	
+		
+		CACHE_DICTION[unique_identifier] = search_results
+		f = open(CACHE_FNAME,'w') 
+		f.write(json.dumps(CACHE_DICTION)) 
+		f.close()
+	tweet_list= []
+	for item in CACHE_DICTION[unique_identifier]["statuses"]:
+		tweet_list.append(item["text"])
+	return tweet_list[:5]
 
 ## PART 3 (b) - Write one line of code to invoke the get_five_tweets function with the phrase "University of Michigan" and save the result in a variable five_tweets.
+five_tweets= get_five_tweets("University of Michigan")
 
 
 
 
 ## PART 3 (c) - Iterate over the five_tweets list, invoke the find_urls function that you defined in Part 1 on each element of the list, and accumulate a new list of each of the total URLs in all five of those tweets in a variable called tweet_urls_found. 
+tweet_urls_found= []
+for item in five_tweets:
+	url_findings= find_urls(item)
+	for url in url_findings:
+		tweet_urls_found.append(url)
+print(tweet_urls_found)
 
 
 
